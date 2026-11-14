@@ -5,6 +5,7 @@
 // role: what you did on it. One of:
 //   "Environment art" | "QA" | "PM & Moderation" | "Private"
 //   ("Private" = role not disclosed)
+//   More than one role: role: ["Environment art", "PM & Moderation"]
 // Optional: `name` overrides the title shown on the card.
 window.C8_GAMES = [
   { placeId: 2534724415,      role: "Environment art" }, // Emergency Response: Liberty County
@@ -17,6 +18,48 @@ window.C8_GAMES = [
   { placeId: 136178978872141, role: "Environment art" }, // Wizard Arena
   { placeId: 17800309532,     role: "Environment art" }, // Voice Control
   { placeId: 81509127008996,  role: "Private" },         // ROOMS
+  { placeId: 18840797476,     role: "PM & Moderation" }, // Sandy Shores DOJ RP
+  { placeId: 10975855395,     role: "QA" },              // Korrupt Zombies
+
+  // Silverstone Horror (group 33696959)
+  { placeId: 15986288705, role: "Environment art" }, // The Funfair Experience
+  { placeId: 16462344844, role: "Environment art" }, // Midnight Patrol
+  { placeId: 16462348180, role: "Environment art" }, // Midnight Apocalypse
+  { placeId: 17404544592, role: "Environment art" }, // [Part 2] Midnight Motel
+  { placeId: 17405133256, role: "Environment art" }, // Midnight Cop
+  { placeId: 17405944598, role: "Environment art" }, // Midnight Ranger
+  { placeId: 17407414162, role: "Environment art" }, // Midnight Hospital
+  { placeId: 17412900245, role: "Environment art" }, // Midnight Intruder
+  { placeId: 17413034921, role: "Environment art" }, // Midnight School
+  { placeId: 17414001072, role: "Environment art" }, // Midnight Chef
+  { placeId: 17422047935, role: "Environment art" }, // Midnight Prison
+  { placeId: 17535011149, role: "Environment art" }, // Midnight Grandma
+  { placeId: 17535016974, role: "Environment art" }, // Midnight Gamers
+  { placeId: 17535019719, role: "Environment art" }, // Midnight Barbers
+  { placeId: 17535023036, role: "Environment art" }, // Midnight Security
+  { placeId: 17568743143, role: "Environment art" }, // Midnight Museum
+  { placeId: 17679603855, role: "Environment art" }, // Midnight Noodles
+  { placeId: 17679707780, role: "Environment art" }, // Midnight Doctors
+  { placeId: 18397457034, role: "Environment art" }, // Midnight Mail
+  { placeId: 18485406306, role: "Environment art" }, // Midnight Train
+
+  // Extreme Funs (group 32428991)
+  { placeId: 13506683740, role: ["Environment art", "PM & Moderation"] }, // Midnight Watchtower
+  { placeId: 13506824854, role: ["Environment art", "PM & Moderation"] }, // The Police Experience
+  { placeId: 14411691958, role: ["Environment art", "PM & Moderation"] }, // The Hotel Experience
+  { placeId: 14470803447, role: ["Environment art", "PM & Moderation"] }, // Midnight House
+  { placeId: 14643465869, role: ["Environment art", "PM & Moderation"] }, // The Hospital Experience
+  { placeId: 14643467231, role: ["Environment art", "PM & Moderation"] }, // The Robber Experience
+  { placeId: 14643471022, role: ["Environment art", "PM & Moderation"] }, // The Camping Experience
+  { placeId: 14690604332, role: ["Environment art", "PM & Moderation"] }, // The Mall Experience
+  { placeId: 14797420671, role: ["Environment art", "PM & Moderation"] }, // Weird Strict Chef
+  { placeId: 14880650832, role: ["Environment art", "PM & Moderation"] }, // The Factory Experience
+  { placeId: 14887107766, role: ["Environment art", "PM & Moderation"] }, // The Restaurant Experience
+  { placeId: 14908773781, role: ["Environment art", "PM & Moderation"] }, // The Arcade Experience
+  { placeId: 14918250341, role: ["Environment art", "PM & Moderation"] }, // 4 Nights at The Mall
+  { placeId: 15038190256, role: ["Environment art", "PM & Moderation"] }, // The Border Experience
+  { placeId: 15039885350, role: ["Environment art", "PM & Moderation"] }, // The School Experience
+  { placeId: 15081984715, role: ["Environment art", "PM & Moderation"] }, // The Wicker
 ];
 
 // How often live stats refresh (seconds).

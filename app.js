@@ -372,12 +372,28 @@
     } finally { clearTimeout(timer); }
   }
 
+  // Same as getJSON, but retries a couple of times (RoProxy sometimes answers 429 "too many requests").
+  async function getJSONRetry(url, tries = 3) {
+    for (let i = 0; ; i++) {
+      try { return await getJSON(url); }
+      catch (e) { if (i >= tries - 1) throw e; await new Promise((r) => setTimeout(r, 1500 * (i + 1))); }
+    }
+  }
+
+  // Roblox caps these endpoints at 50 universe IDs per request, so ask in batches and merge.
+  async function getBatched(makeUrl, ids, size = 50) {
+    const parts = [];
+    for (let i = 0; i < ids.length; i += size) parts.push(ids.slice(i, i + size));
+    const results = await Promise.all(parts.map((p) => getJSONRetry(makeUrl(p))));
+    return { data: results.flatMap((r) => r.data || []) };
+  }
+
   async function resolveUniverses() {
     const cache = store.get("c8-universes") || {};
     const ids = await Promise.all(config.map(async (g) => {
       if (cache[g.placeId]) return cache[g.placeId];
       try {
-        const j = await getJSON(API.universe(g.placeId));
+        const j = await getJSONRetry(API.universe(g.placeId));
         cache[g.placeId] = j.universeId;
         return j.universeId;
       } catch { return null; }
@@ -428,6 +444,11 @@
     const tip = r.key === "private" ? ` title="Role not disclosed"` : "";
     return `<span class="role-tag role-${r.key}"${tip}>${r.icon}${esc(role)}</span>`;
   }
+  // role can be one string or a list, e.g. ["Environment art", "PM & Moderation"]
+  function roleTags(role) {
+    const list = (Array.isArray(role) ? role : [role]).filter(Boolean);
+    return list.length ? `<div class="role-tags">${list.map(roleTag).join("")}</div>` : "";
+  }
 
   function cardHTML(cfg, game, icon, thumb) {
     const name = cfg.name || game.name;
@@ -437,7 +458,7 @@
       <a class="card-link" href="${url}" target="_blank" rel="noreferrer" aria-label="Play ${esc(name)} on Roblox"></a>
       <div class="banner">
         ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy" />` : ""}
-        ${roleTag(cfg.role)}
+        ${roleTags(cfg.role)}
         <div class="card-actions">
           <button type="button" class="icon-btn" data-copy="${url}" aria-label="Copy link to ${esc(name)}">${ICON.copy}</button>
           <a class="icon-btn" href="${url}" target="_blank" rel="noreferrer" aria-label="Open ${esc(name)}">${ICON.open}</a>
@@ -487,7 +508,7 @@
     const ids = universeIds.filter(Boolean);
     if (!ids.length) return;
     try {
-      const { data } = await getJSON(API.games(ids));
+      const { data } = await getBatched(API.games, ids);
       let total = 0;
       data.forEach((g) => { const c = cards.get(g.id); if (c) updateCard(c, g); total += g.playing || 0; });
       sub.textContent = `${data.length} game${data.length === 1 ? "" : "s"} · ${full.format(total)} playing now`;
@@ -510,10 +531,16 @@
     if (!ids.length) { sub.textContent = "Couldn't load games. Check the place IDs in games.js."; grid.innerHTML = ""; return; }
 
     const [games, icons, thumbs] = await Promise.all([
-      getJSON(API.games(ids)).catch(() => ({ data: [] })),
-      getJSON(API.icons(ids)).catch(() => ({ data: [] })),
-      getJSON(API.thumbs(ids)).catch(() => ({ data: [] })),
+      getBatched(API.games, ids).catch(() => null),
+      getBatched(API.icons, ids).catch(() => ({ data: [] })),
+      getBatched(API.thumbs, ids).catch(() => ({ data: [] })),
     ]);
+    // No game data (e.g. the proxy rate-limited us): keep the skeletons and try again shortly
+    if (!games?.data?.length) {
+      sub.textContent = "Couldn't reach Roblox, retrying shortly…";
+      setTimeout(initGames, 15000);
+      return;
+    }
     const byId = new Map(games.data.map((g) => [g.id, g]));
     const iconBy = new Map(icons.data.map((i) => [i.targetId, i.imageUrl]));
     const thumbBy = new Map(thumbs.data.map((t) => [t.universeId, t.thumbnails?.[0]?.imageUrl]));
