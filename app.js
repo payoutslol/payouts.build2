@@ -492,6 +492,7 @@
       data.forEach((g) => { const c = cards.get(g.id); if (c) updateCard(c, g); total += g.playing || 0; });
       sub.textContent = `${data.length} game${data.length === 1 ? "" : "s"} · ${full.format(total)} playing now`;
       setCCU(total); setVisits();
+      if (sortMode) applySort(); // live numbers changed, so keep the order right
     } catch {
       sub.textContent = "Couldn't reach Roblox, retrying shortly…";
     }
@@ -527,15 +528,48 @@
       el.className = "game-card";
       el.innerHTML = cardHTML(cfg, game, iconBy.get(uid), thumbBy.get(uid));
       grid.appendChild(el);
-      const entry = { el, values: {} };
+      const entry = { el, values: {}, order: i };
       cards.set(uid, entry);
       updateCard(entry, game);
       total += game.playing || 0;
     });
     sub.textContent = `${cards.size} game${cards.size === 1 ? "" : "s"} · ${full.format(total)} playing now`;
     setCCU(total); setVisits();
+    if (sortMode) applySort();
     setInterval(refreshStats, refreshMs);
   }
+
+  /* Sort buttons. Clicking the active one again goes back to the games.js order. */
+  const SORTS = {
+    ccu: (a, b) => b.values.playing - a.values.playing,
+    most: (a, b) => b.values.visits - a.values.visits,
+    least: (a, b) => a.values.visits - b.values.visits,
+  };
+  const sortBtns = [...document.querySelectorAll(".sort-btn")];
+  let sortMode = "";
+
+  function applySort() {
+    const entries = [...cards.values()];
+    const cmp = SORTS[sortMode];
+    entries.sort((a, b) => (cmp ? cmp(a, b) : 0) || a.order - b.order);
+    // FLIP: remember where each card was, move it, then animate from old spot to new
+    const before = new Map(entries.map((e) => [e, e.el.getBoundingClientRect()]));
+    entries.forEach((e) => grid.appendChild(e.el));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    entries.forEach((e) => {
+      const f = before.get(e), l = e.el.getBoundingClientRect();
+      const dx = f.left - l.left, dy = f.top - l.top;
+      if (dx || dy) e.el.animate(
+        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
+        { duration: 450, easing: "cubic-bezier(.2,.8,.2,1)" });
+    });
+  }
+
+  sortBtns.forEach((btn) => btn.addEventListener("click", () => {
+    sortMode = sortMode === btn.dataset.sort ? "" : btn.dataset.sort;
+    sortBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sort === sortMode)));
+    applySort();
+  }));
 
   grid.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-copy]");

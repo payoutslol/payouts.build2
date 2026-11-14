@@ -160,6 +160,17 @@ body[data-stage="main"] .main { opacity: 1; }
 .section-head { margin-bottom: 40px; }
 .section-title { display: flex; align-items: center; gap: 14px; margin: 0; font-size: clamp(36px, 5vw, 52px); font-weight: 700; letter-spacing: -0.02em; font-stretch: 112.5%; }
 .section-sub { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+.sort-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+.sort-label { font-size: 13px; color: var(--muted); margin-right: 2px; }
+.sort-btn {
+  font: inherit; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.82);
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  background: rgba(18,18,22,.62); border: 1px solid rgba(255,255,255,.1);
+  transition: background-color .2s, color .2s, border-color .2s;
+}
+.sort-btn:hover { background: rgba(40,40,46,.75); color: #fff; }
+.sort-btn[aria-pressed="true"] { background: #fff; color: #0a0a0a; border-color: #fff; }
+.sort-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .chip {
   display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);

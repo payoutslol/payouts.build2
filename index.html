@@ -87,6 +87,12 @@
       <div class="section-head">
         <h2 class="section-title">My Past Work</h2>
         <p class="section-sub" id="games-sub">Loading live stats…</p>
+        <div class="sort-bar" id="sort-bar" role="group" aria-label="Sort games">
+          <span class="sort-label">Sort by</span>
+          <button type="button" class="sort-btn" data-sort="ccu" aria-pressed="false">Highest CCU</button>
+          <button type="button" class="sort-btn" data-sort="most" aria-pressed="false">Most visits</button>
+          <button type="button" class="sort-btn" data-sort="least" aria-pressed="false">Least visits</button>
+        </div>
       </div>
       <div class="grid" id="game-grid" aria-live="polite"></div>
     </section>
