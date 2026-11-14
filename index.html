@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Payouts · payouts.build</title>
+  <meta name="theme-color" content="#121212" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="https://cdn.discordapp.com/icons/1388263774615634150/1d87af9358916b16372cd106c1427ff9.webp?size=64" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-stage="intro">
+  <!-- Top bar: colored status bar during the intro, glass header after entering -->
+  <header class="topbar" data-state="connecting">
+    <div class="topbar-inner">
+      <a href="#top" class="brand">
+        <img class="brand-icon" alt="" width="32" height="32"
+             src="https://cdn.discordapp.com/icons/1388263774615634150/1d87af9358916b16372cd106c1427ff9.webp?size=64" />
+        <span class="brand-name" data-intro="Payouts" data-main="payouts.build">Payouts</span>
+      </a>
+      <nav class="site-nav" aria-label="Sections">
+        <a href="#games" data-section="games">Games</a>
+        <a href="#about" data-section="about">About</a>
+        <a href="#contact" data-section="contact">Contact</a>
+      </nav>
+      <div class="topbar-actions">
+        <a href="#games" class="pill" id="online-pill" title="Players in all games right now">
+          <span class="online-dot"></span>
+          <span class="tabular" id="online-count">–</span>
+          <span class="hide-sm">CCU</span>
+        </a>
+        <a href="#games" class="pill" id="visits-pill" title="Total visits across all games">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="tabular" id="visits-count">–</span>
+          <span class="hide-sm">visits</span>
+        </a>
+        <a href="https://discord.com/users/1278425743847718973" target="_blank" rel="noreferrer" class="pill" aria-label="Contact Payouts on Discord">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.1 14.1 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+          <span class="hide-sm">Contact Payouts</span>
+        </a>
+        <button type="button" class="pill pill-icon" id="sound-btn" aria-label="Unmute music" aria-pressed="false">
+          <svg class="ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+          <svg class="ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+        </button>
+        <div class="settings">
+          <button type="button" class="pill pill-icon" id="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <div class="settings-menu" id="settings-menu" hidden>
+            <label class="toggle"><span>Custom cursor</span><input type="checkbox" id="opt-cursor" checked /></label>
+            <button type="button" class="menu-btn" id="opt-replay">Replay intro</button>
+          </div>
+        </div>
+      </div>
+      <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path class="lock-shackle" d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
+    <p class="skip-hint">Click or press any key to skip</p>
+  </header>
+
+  <!-- Landing intro: dotted globe + connection readout -->
+  <section class="intro" id="intro" aria-label="Intro">
+    <canvas id="globe"></canvas>
+    <button type="button" class="enter-marker" id="enter-marker" aria-label="Click to enter">
+      <span class="enter-ring"></span>
+      <span class="enter-label"><span class="fine">Click to enter</span><span class="coarse">Tap to enter</span></span>
+    </button>
+    <div class="readout">
+      <p class="readout-kicker" id="ro-kicker">Creating secure connection</p>
+      <p class="readout-big" id="ro-big">––</p>
+      <p class="readout-sub" id="ro-sub">&nbsp;</p>
+      <p class="readout-hash" id="ro-hash">&nbsp;</p>
+    </div>
+  </section>
+
+  <!-- Background music video (behind the main page) -->
+  <div class="bg-video" id="bg-video" aria-hidden="true">
+    <div class="bg-frame"><div id="bg-player"></div></div>
+    <div class="bg-dim"></div>
+    <div class="bg-haze" id="bg-haze"></div>
+  </div>
+
+  <!-- Main page -->
+  <main id="top" class="main">
+    <section class="hero" id="hero">
+      <div class="hero-inner container">
+        <img class="hero-icon" alt="" width="88" height="88"
+             src="https://cdn.discordapp.com/icons/1388263774615634150/1d87af9358916b16372cd106c1427ff9.webp?size=256" />
+        <h1 class="hero-title">Payouts</h1>
+      </div>
+    </section>
+
+    <section class="games container" id="games">
+      <div class="section-head">
+        <h2 class="section-title">My Past Work</h2>
+        <p class="section-sub" id="games-sub">Loading live stats…</p>
+      </div>
+      <div class="grid" id="game-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="about container" id="about">
+      <div class="profile-card" id="profile-card">
+        <span class="profile-bg-name" id="profile-bg-name" aria-hidden="true">HoldMyRooms</span>
+        <div class="profile-floor" aria-hidden="true"></div>
+        <img class="profile-avatar" id="profile-avatar" alt="Roblox avatar" />
+        <div class="profile-bar">
+          <div class="profile-id">
+            <div class="profile-display"><span id="profile-display">HoldMyRooms</span><svg class="verified" id="profile-verified" viewBox="0 0 28 28" role="img" aria-label="Verified"><rect x="5.888" width="22.89" height="22.89" transform="rotate(15 5.888 0)" fill="#0066FF"/><path fill-rule="evenodd" d="M20.543 8.751l.006.006a1.537 1.537 0 0 1 0 2.176l-8.732 8.732-4.367-4.368a1.537 1.537 0 0 1 0-2.175l.007-.007a1.537 1.537 0 0 1 2.176 0l2.184 2.185 6.55-6.549a1.537 1.537 0 0 1 2.176 0z" fill="#fff"/></svg></div>
+            <div class="profile-user" id="profile-user">@HoldMyRooms</div>
+          </div>
+          <a class="profile-open" href="https://www.roblox.com/users/4885560811/profile" target="_blank" rel="noreferrer">Open on Roblox <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <div class="about-text">
+        <h2 class="about-title">About</h2>
+        <p class="about-lead">
+          I've been involved in Roblox development since 2019, specializing in environment art, quality assurance, project management, and moderation.
+          <span class="muted">Over the years, I've contributed to projects reaching peak concurrent player counts of over <strong>22.3 million</strong>, gaining experience across both the creative and operational sides of game development.</span>
+        </p>
+        <div class="now-roles">
+        <div class="now-role">
+          <span class="now-dot" aria-hidden="true"></span>
+          <div>
+            <div class="now-kicker">Currently</div>
+            <div class="now-title">Jr Event Organizer</div>
+            <div class="now-org">Roblox &middot; Creator Events team</div>
+          </div>
+        </div>
+        <div class="now-role">
+          <span class="now-dot" aria-hidden="true"></span>
+          <div>
+            <div class="now-kicker">Currently</div>
+            <div class="now-title">Environment Artist</div>
+            <div class="now-org">Fairgames</div>
+          </div>
+        </div>
+        </div>
+        <dl class="about-stats">
+          <div><dt>Developing since</dt><dd>2019</dd><dd class="note" id="years-note">7 years</dd></div>
+          <div><dt>Peak CCU</dt><dd>22.3M+</dd><dd class="note">across projects</dd></div>
+          <div><dt>Focus</dt><dd>Environment art</dd><dd class="note">plus QA, PM &amp; moderation</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="contact-inner container">
+        <h2 class="contact-title">Got a project? DM me on Discord.</h2>
+        <p class="contact-sub">Discord is the best place to reach me. Send over what you're working on and I'll get back to you.</p>
+        <div class="contact-actions">
+          <a class="btn btn-light" href="https://discord.com/users/1278425743847718973" target="_blank" rel="noreferrer">Message me on Discord <span aria-hidden="true">↗</span></a>
+          <button type="button" class="btn btn-dark" id="copy-discord-id">Copy Discord ID</button>
+        </div>
+
+        <div class="dc-card" id="dc-card">
+          <div class="dc-banner" id="dc-banner"></div>
+          <div class="dc-body">
+            <div class="dc-avatar-wrap">
+              <img class="dc-avatar" id="dc-avatar" alt="" src="https://cdn.discordapp.com/avatars/1278425743847718973/f0ed5795856255735a91a132fbab5ced.png?size=160" />
+              <span class="dc-status" id="dc-status" data-status="offline" title="Offline"></span>
+            </div>
+            <div class="dc-name-row">
+              <span class="dc-name" id="dc-name">payouts</span>
+              <span class="chip dc-tag" id="dc-tag" hidden></span>
+              <span class="dc-badges" id="dc-badges"></span>
+            </div>
+            <div class="dc-user" id="dc-user">@payoutslol</div>
+            <div class="dc-presence"><span class="dc-pdot" id="dc-pdot" data-status="offline"></span><span id="dc-presence">Offline · DM me anyway</span></div>
+            <div class="dc-activity" id="dc-activity" hidden></div>
+            <a class="dc-open" href="https://discord.com/users/1278425743847718973" target="_blank" rel="noreferrer">Open on Discord ↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer container">
+      <a href="#top" class="footer-brand">
+        <img alt="" width="20" height="20" src="https://cdn.discordapp.com/icons/1388263774615634150/1d87af9358916b16372cd106c1427ff9.webp?size=64" />Payouts
+      </a>
+      <a href="https://discord.com/users/1278425743847718973" target="_blank" rel="noreferrer" class="footer-link">Contact Payouts</a>
+    </footer>
+  </main>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"><span class="cursor-ring"></span><span class="cursor-dot"></span></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <script src="games.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
