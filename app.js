@@ -650,25 +650,34 @@
   const bgWrap = $("#bg-video");
   const soundBtn = $("#sound-btn");
   let player = null, playerReady = false, wantSound = store.get("c8-music") !== false;
+  // We track mute ourselves: YouTube's player.isMuted() updates late, so
+  // reading it right after a click returned the old value and the button
+  // "did nothing" on fast or repeated clicks.
+  let soundOn = false;
 
   function renderSoundBtn() {
-    const on = !!(playerReady && !player.isMuted());
-    soundBtn.setAttribute("aria-pressed", String(on));
-    soundBtn.setAttribute("aria-label", on ? "Mute music" : "Unmute music");
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    soundBtn.setAttribute("aria-label", soundOn ? "Mute music" : "Unmute music");
+  }
+
+  function applySound() {
+    if (playerReady) {
+      if (soundOn) { player.unMute(); player.setVolume(BG_VOLUME); player.playVideo(); }
+      else player.mute();
+    }
+    renderSoundBtn();
   }
 
   function startMusic() {
-    if (!playerReady || !wantSound) return;
-    player.unMute(); player.setVolume(BG_VOLUME); player.playVideo();
-    setTimeout(renderSoundBtn, 150);
+    soundOn = wantSound;
+    applySound();
   }
 
   soundBtn.addEventListener("click", () => {
-    if (!playerReady) return;
-    if (player.isMuted()) { wantSound = true; player.unMute(); player.setVolume(BG_VOLUME); player.playVideo(); }
-    else { wantSound = false; player.mute(); }
+    soundOn = !soundOn;
+    wantSound = soundOn;
     store.set("c8-music", wantSound);
-    setTimeout(renderSoundBtn, 150);
+    applySound();
   });
 
   window.onYouTubeIframeAPIReady = () => {
@@ -682,12 +691,11 @@
         onReady: (e) => {
           playerReady = true;
           e.target.mute(); e.target.playVideo();
-          if (document.body.dataset.stage === "main") startMusic(); // entered before the player loaded
+          if (document.body.dataset.stage === "main") applySound(); // entered before the player loaded
           renderSoundBtn();
         },
         onStateChange: (e) => {
           if (e.data === YT.PlayerState.PLAYING) bgWrap.classList.add("playing");
-          renderSoundBtn();
         },
       },
     });
