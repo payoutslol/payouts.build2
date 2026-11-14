@@ -240,7 +240,6 @@
     brandName.textContent = brandName.dataset.main;
     clearInterval(scrambleTimer);
     setTimeout(() => { if (document.body.dataset.stage === "main") running = false; }, 1000);
-    startMusic(); // runs inside the click/key gesture, so the browser allows sound
   }
 
   function onIntroInput(e) {
@@ -261,19 +260,12 @@
    * Header, hero, cursor
    * ============================================================ */
   const hero = $(".hero-inner");
-  const haze = $("#bg-haze");
-  const bgVideoEl = $("#bg-video");
   function onScroll() {
     const y = window.scrollY;
     topbar.classList.toggle("scrolled", y > 8);
     const k = clamp01(y / (window.innerHeight * 0.55));
     hero.style.opacity = String(1 - k * 0.85);
     hero.style.transform = `translateY(${-k * 40}px)`;
-    // background video hazes over as you scroll past the hero:
-    // tint fades in smoothly, the blur switches on once past ~30%
-    const h = clamp01(y / (window.innerHeight * 0.7));
-    haze.style.opacity = String(h);
-    bgVideoEl.classList.toggle("hazed", h > 0.3);
   }
   onScroll();
   // one scroll handler per frame (instead of on every scroll event)
@@ -512,7 +504,9 @@
       let total = 0;
       data.forEach((g) => { const c = cards.get(g.id); if (c) updateCard(c, g); total += g.playing || 0; });
       sub.textContent = `${data.length} game${data.length === 1 ? "" : "s"} · ${full.format(total)} playing now`;
-      setCCU(total); setVisits();    } catch {
+      setCCU(total); setVisits();
+      sortByVisits(); // visits keep climbing, so keep the order right
+    } catch {
       sub.textContent = "Couldn't reach Roblox, retrying shortly…";
     }
   }
@@ -560,8 +554,15 @@
     });
     sub.textContent = `${cards.size} game${cards.size === 1 ? "" : "s"} · ${full.format(total)} playing now`;
     setCCU(total); setVisits();
-    updateFilterCounts(); applyFilter();
+    sortByVisits(); updateFilterCounts(); applyFilter();
     setInterval(refreshStats, refreshMs);
+  }
+
+  /* Cards are always ordered by total visits, most first. */
+  function sortByVisits() {
+    const entries = [...cards.values()].sort((a, b) => (b.values.visits || 0) - (a.values.visits || 0));
+    if (entries.every((e, i) => grid.children[i] === e.el)) return; // already in order
+    entries.forEach((e) => grid.appendChild(e.el));
   }
 
   /* Role filter buttons. A game with two roles shows under both.
@@ -696,67 +697,4 @@
   loadDiscordPresence();
   setInterval(loadDiscordPresence, 30000);
 
-  /* ============================================================
-   * Background music video (YouTube)
-   * Starts muted behind the intro (browsers only allow muted
-   * autoplay), then unmutes on the "enter" click.
-   * ============================================================ */
-  const BG_VIDEO_ID = "YnF-6UtAZSk";
-  const BG_VOLUME = 40;
-  const bgWrap = $("#bg-video");
-  const soundBtn = $("#sound-btn");
-  let player = null, playerReady = false, wantSound = store.get("c8-music") !== false;
-  // We track mute ourselves: YouTube's player.isMuted() updates late, so
-  // reading it right after a click returned the old value and the button
-  // "did nothing" on fast or repeated clicks.
-  let soundOn = false;
-
-  function renderSoundBtn() {
-    soundBtn.setAttribute("aria-pressed", String(soundOn));
-    soundBtn.setAttribute("aria-label", soundOn ? "Mute music" : "Unmute music");
-  }
-
-  function applySound() {
-    if (playerReady) {
-      if (soundOn) { player.unMute(); player.setVolume(BG_VOLUME); player.playVideo(); }
-      else player.mute();
-    }
-    renderSoundBtn();
-  }
-
-  function startMusic() {
-    soundOn = wantSound;
-    applySound();
-  }
-
-  soundBtn.addEventListener("click", () => {
-    soundOn = !soundOn;
-    wantSound = soundOn;
-    store.set("c8-music", wantSound);
-    applySound();
-  });
-
-  window.onYouTubeIframeAPIReady = () => {
-    player = new YT.Player("bg-player", {
-      videoId: BG_VIDEO_ID,
-      playerVars: {
-        autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: BG_VIDEO_ID, playsinline: 1,
-        rel: 0, modestbranding: 1, iv_load_policy: 3, disablekb: 1, fs: 0,
-      },
-      events: {
-        onReady: (e) => {
-          playerReady = true;
-          e.target.mute(); e.target.playVideo();
-          if (document.body.dataset.stage === "main") applySound(); // entered before the player loaded
-          renderSoundBtn();
-        },
-        onStateChange: (e) => {
-          if (e.data === YT.PlayerState.PLAYING) bgWrap.classList.add("playing");
-        },
-      },
-    });
-  };
-  const yt = document.createElement("script");
-  yt.src = "https://www.youtube.com/iframe_api";
-  document.head.appendChild(yt);
 })();

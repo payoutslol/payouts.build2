@@ -466,43 +466,16 @@ html.has-cursor, html.has-cursor * { cursor: none !important; }
   #online-pill, #visits-pill { display: none; }
 }
 
-/* ---------- Background music video ---------- */
-.bg-video { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: var(--bg); }
-.bg-frame { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; }
-.bg-video.playing .bg-frame { opacity: 1; }
-/* "cover" sizing for a 16:9 video: always fill the screen and crop the overflow.
-   1.06 = small safety crop so YouTube's edge UI stays off-screen.
-   (If you switch to a 4:3 video, use max(100vh, 75vw) and max(177.78vh, 133.34vw).) */
-.bg-frame iframe {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0;
-  height: calc(max(100vh, 56.25vw) * 1.06);
-  width: calc(max(100vw, 177.78vh) * 1.06);
-}
-.bg-dim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,8,8,.35), rgba(8,8,8,.55)); }
-.bg-haze {
-  position: absolute; inset: 0; opacity: 0; will-change: opacity;
-  background: rgba(8,8,8,.62); backdrop-filter: blur(18px) saturate(120%); -webkit-backdrop-filter: blur(18px) saturate(120%);
-}
 .main { position: relative; z-index: 1; }
 
-#sound-btn .ico-off { display: none; }
-#sound-btn[aria-pressed="false"] .ico-on { display: none; }
-#sound-btn[aria-pressed="false"] .ico-off { display: block; }
-
 /* =====================================================================
-   Performance: the page sits on top of a playing video, so anything
-   that blurs what's *behind* it (backdrop-filter) has to be recomputed
-   every video frame. These overrides keep the look with cheap effects.
+   Performance: cheap stand-ins for expensive effects. Anything
+   that blurs what is *behind* it (backdrop-filter) is costly to redraw
+   while scrolling. These overrides keep the look with cheap effects.
    ===================================================================== */
 
-/* 1. Haze: dark tint (opacity-only, free) + one blur on the video layer itself,
-      switched on once you've scrolled a bit, instead of a full-screen backdrop blur. */
-.bg-haze { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(8,8,8,.68); }
-.bg-frame { overflow: hidden; transition: opacity 1.2s ease, filter .8s ease; }
-/* (No blur on the video any more: blurring a playing video costs GPU work on every frame.) */
-.bg-video.hazed .bg-haze { background: rgba(8,8,8,.76); }
 
-/* 2. No glass blur on small UI over the video; slightly more solid backgrounds instead. */
+/* No glass blur on small UI; slightly more solid backgrounds instead. */
 .topbar[data-state="entered"].scrolled .topbar-inner { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10,10,12,.88); }
 .pill, .site-nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(18,18,22,.62); }
 .pill:hover { background: rgba(40,40,46,.75); }

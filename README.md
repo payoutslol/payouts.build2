@@ -8,7 +8,7 @@ Portfolio site: globe intro, live Roblox game stats, About, and a live Discord c
 |---|---|
 | `index.html` | Page structure and text (About bio, roles, headings) |
 | `styles.css` | All styling |
-| `app.js` | Intro globe, live stats, Discord card, background video |
+| `app.js` | Intro globe, live stats, Discord card |
 | `games.js` | **Your games list** — place IDs + role tags |
 | `server.js` | Tiny web server Railway runs (`npm start`) |
 | `serve.ps1` | Optional local preview on Windows without Node |
@@ -16,7 +16,6 @@ Portfolio site: globe intro, live Roblox game stats, About, and a live Discord c
 ## Common edits
 
 - **Add/remove a game:** edit `games.js`.
-- **Change the background video:** set `BG_VIDEO_ID` in `app.js`.
 - **Change your Discord/Roblox account:** `DISCORD_ID` / `ROBLOX_USER_ID` in `app.js`.
 
 Push to GitHub and Railway redeploys automatically.
