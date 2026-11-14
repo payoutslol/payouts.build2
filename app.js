@@ -351,8 +351,8 @@
   const API = {
     universe: (placeId) => `https://apis.roproxy.com/universes/v1/places/${placeId}/universe`,
     games: (ids) => `https://games.roproxy.com/v1/games?universeIds=${ids.join(",")}`,
-    icons: (ids) => `https://thumbnails.roproxy.com/v1/games/icons?universeIds=${ids.join(",")}&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false`,
-    thumbs: (ids) => `https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${ids.join(",")}&countPerUniverse=1&defaults=true&size=768x432&format=Png&isCircular=false`,
+    icons: (ids) => `https://thumbnails.roproxy.com/v1/games/icons?universeIds=${ids.join(",")}&returnPolicy=PlaceHolder&size=150x150&format=Webp&isCircular=false`,
+    thumbs: (ids) => `https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${ids.join(",")}&countPerUniverse=1&defaults=true&size=576x324&format=Webp&isCircular=false`,
   };
   const grid = $("#game-grid");
   const sub = $("#games-sub");
@@ -454,7 +454,7 @@
     const name = cfg.name || game.name;
     const url = `https://www.roblox.com/games/${game.rootPlaceId}`;
     return `
-      <div class="bg" style="background-image:url('${esc(icon || "")}')"></div>
+      <div class="bg" style="background-image:url('${esc((icon || "").replace("/150/150/", "/50/50/"))}')"></div>
       <a class="card-link" href="${url}" target="_blank" rel="noreferrer" aria-label="Play ${esc(name)} on Roblox"></a>
       <div class="banner">
         ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy" />` : ""}
@@ -512,9 +512,7 @@
       let total = 0;
       data.forEach((g) => { const c = cards.get(g.id); if (c) updateCard(c, g); total += g.playing || 0; });
       sub.textContent = `${data.length} game${data.length === 1 ? "" : "s"} · ${full.format(total)} playing now`;
-      setCCU(total); setVisits();
-      if (sortMode) applySort(); // live numbers changed, so keep the order right
-    } catch {
+      setCCU(total); setVisits();    } catch {
       sub.textContent = "Couldn't reach Roblox, retrying shortly…";
     }
   }
@@ -555,47 +553,44 @@
       el.className = "game-card";
       el.innerHTML = cardHTML(cfg, game, iconBy.get(uid), thumbBy.get(uid));
       grid.appendChild(el);
-      const entry = { el, values: {}, order: i };
+      const entry = { el, values: {}, roles: rolesOf(cfg) };
       cards.set(uid, entry);
       updateCard(entry, game);
       total += game.playing || 0;
     });
     sub.textContent = `${cards.size} game${cards.size === 1 ? "" : "s"} · ${full.format(total)} playing now`;
     setCCU(total); setVisits();
-    if (sortMode) applySort();
+    updateFilterCounts(); applyFilter();
     setInterval(refreshStats, refreshMs);
   }
 
-  /* Sort buttons. Clicking the active one again goes back to the games.js order. */
-  const SORTS = {
-    ccu: (a, b) => b.values.playing - a.values.playing,
-    most: (a, b) => b.values.visits - a.values.visits,
-    least: (a, b) => a.values.visits - b.values.visits,
-  };
-  const sortBtns = [...document.querySelectorAll(".sort-btn")];
-  let sortMode = "";
+  /* Role filter buttons. A game with two roles shows under both.
+     Clicking the active button again shows every game. */
+  const filterBtns = [...document.querySelectorAll(".sort-btn")];
+  let roleFilter = "";
+  const rolesOf = (cfg) => (Array.isArray(cfg.role) ? cfg.role : [cfg.role]).filter(Boolean).map((r) => String(r).toLowerCase());
 
-  function applySort() {
-    const entries = [...cards.values()];
-    const cmp = SORTS[sortMode];
-    entries.sort((a, b) => (cmp ? cmp(a, b) : 0) || a.order - b.order);
-    // FLIP: remember where each card was, move it, then animate from old spot to new
-    const before = new Map(entries.map((e) => [e, e.el.getBoundingClientRect()]));
-    entries.forEach((e) => grid.appendChild(e.el));
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    entries.forEach((e) => {
-      const f = before.get(e), l = e.el.getBoundingClientRect();
-      const dx = f.left - l.left, dy = f.top - l.top;
-      if (dx || dy) e.el.animate(
-        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
-        { duration: 450, easing: "cubic-bezier(.2,.8,.2,1)" });
+  function applyFilter() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    cards.forEach((e) => {
+      const show = !roleFilter || e.roles.includes(roleFilter);
+      if (show && e.el.hidden && !reduce) e.el.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: "ease-out" });
+      e.el.hidden = !show;
     });
   }
 
-  sortBtns.forEach((btn) => btn.addEventListener("click", () => {
-    sortMode = sortMode === btn.dataset.sort ? "" : btn.dataset.sort;
-    sortBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sort === sortMode)));
-    applySort();
+  // number of games per role, shown on each button
+  function updateFilterCounts() {
+    filterBtns.forEach((b) => {
+      const n = [...cards.values()].filter((e) => e.roles.includes(b.dataset.role)).length;
+      b.querySelector(".sort-count").textContent = n;
+    });
+  }
+
+  filterBtns.forEach((btn) => btn.addEventListener("click", () => {
+    roleFilter = roleFilter === btn.dataset.role ? "" : btn.dataset.role;
+    filterBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.role === roleFilter)));
+    applyFilter();
   }));
 
   grid.addEventListener("click", async (e) => {

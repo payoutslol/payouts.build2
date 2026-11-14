@@ -171,6 +171,8 @@ body[data-stage="main"] .main { opacity: 1; }
 .sort-btn:hover { background: rgba(40,40,46,.75); color: #fff; }
 .sort-btn[aria-pressed="true"] { background: #fff; color: #0a0a0a; border-color: #fff; }
 .sort-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.sort-count { margin-left: 4px; font-weight: 500; opacity: .55; font-variant-numeric: tabular-nums; }
+.sort-count:empty { display: none; }
 .chip {
   display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);
@@ -497,7 +499,8 @@ html.has-cursor, html.has-cursor * { cursor: none !important; }
       switched on once you've scrolled a bit, instead of a full-screen backdrop blur. */
 .bg-haze { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(8,8,8,.68); }
 .bg-frame { overflow: hidden; transition: opacity 1.2s ease, filter .8s ease; }
-.bg-video.hazed .bg-frame { filter: blur(10px); }
+/* (No blur on the video any more: blurring a playing video costs GPU work on every frame.) */
+.bg-video.hazed .bg-haze { background: rgba(8,8,8,.76); }
 
 /* 2. No glass blur on small UI over the video; slightly more solid backgrounds instead. */
 .topbar[data-state="entered"].scrolled .topbar-inner { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10,10,12,.88); }
@@ -522,3 +525,14 @@ html.has-cursor, html.has-cursor * { cursor: none !important; }
 .stat .mini-dot { animation: none; }
 /* elements toggled with the `hidden` attribute must stay hidden even if they set display */
 [hidden] { display: none !important; }
+
+/* Performance pass 2 (37+ game cards):
+   - card glow: a small blurred 50px icon stretched up, instead of a 40px blur over the whole card;
+   - cards off screen skip rendering entirely until you scroll near them. */
+.game-card .bg {
+  /* blur a quarter-size copy, then let the GPU stretch it 4x: same soft glow, ~16x less blur work */
+  inset: auto; left: 0; top: 0; width: 25%; height: 25%;
+  transform-origin: 0 0; transform: scale(4.6) translate(-4%, -4%); will-change: transform;
+  filter: blur(8px) saturate(1.4); opacity: .22;
+}
+.game-card { content-visibility: auto; contain-intrinsic-size: auto 340px; }

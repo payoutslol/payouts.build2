@@ -20,6 +20,10 @@ window.C8_GAMES = [
   { placeId: 81509127008996,  role: "Private" },         // ROOMS
   { placeId: 18840797476,     role: "PM & Moderation" }, // Sandy Shores DOJ RP
   { placeId: 10975855395,     role: "QA" },              // Korrupt Zombies
+  { placeId: 84987799649901,  role: "QA" },              // War of the Worlds
+  { placeId: 13953602912,     role: "Environment art" }, // Boba Tea Tower
+  { placeId: 12514558242,     role: "Environment art" }, // Strawberry milk tower
+  { placeId: 10554647907,     role: "Environment art" }, // Tower of Coffee
 
   // Silverstone Horror (group 33696959)
   { placeId: 15986288705, role: "Environment art" }, // The Funfair Experience
