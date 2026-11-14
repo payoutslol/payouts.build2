@@ -117,7 +117,7 @@ body[data-stage="main"] .intro { opacity: 0; visibility: hidden; pointer-events:
 .readout-kicker { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; transition: color .4s; }
 .intro.protected .readout-kicker { color: var(--green); }
 .readout-big {
-  font-size: clamp(48px, 9vw, 104px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-stretch: 112.5%;
+  font-size: clamp(48px, 9vw, 104px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-stretch: 112.5%; white-space: nowrap;
   margin: 6px 0 14px !important;
   background: linear-gradient(180deg, #fff 30%, #9a9a9a); -webkit-background-clip: text; background-clip: text; color: transparent;
 }

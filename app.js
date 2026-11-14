@@ -184,7 +184,7 @@
   const CH = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789";
   const rnd = (n, set = CH) => Array.from({ length: n }, () => set[(Math.random() * set.length) | 0]).join("");
   function scramble() {
-    ro.big.textContent = rnd(2);
+    ro.big.textContent = rnd(7, CH + "abcdefghijkmnopqrstuvwxyz"); // 7 chars, same as "Payouts"
     ro.sub.textContent = rnd(16, CH + "abcdefghijkmnopqrstuvwxyz");
     ro.hash.textContent = "c0" + rnd(10, "0123456789abcdef");
   }
@@ -258,7 +258,7 @@
   buildDots().catch((err) => console.warn("Globe data failed to load", err));
 
   /* ============================================================
-   * Header, hero, settings, cursor
+   * Header, hero, cursor
    * ============================================================ */
   const hero = $(".hero-inner");
   const haze = $("#bg-haze");
@@ -302,24 +302,9 @@
   window.addEventListener("resize", updateNav);
   updateNav();
 
-  const settingsBtn = $("#settings-btn"), settingsMenu = $("#settings-menu");
-  settingsBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const open = settingsMenu.hidden;
-    settingsMenu.hidden = !open;
-    settingsBtn.setAttribute("aria-expanded", String(open));
-  });
-  document.addEventListener("click", (e) => { if (!e.target.closest(".settings")) { settingsMenu.hidden = true; settingsBtn.setAttribute("aria-expanded", "false"); } });
-  $("#opt-replay").addEventListener("click", () => { settingsMenu.hidden = true; startIntro(); });
-
   const cursorEl = $(".cursor"), ring = $(".cursor-ring"), dot = $(".cursor-dot");
   const fine = window.matchMedia("(pointer: fine)").matches;
-  const optCursor = $("#opt-cursor");
-  const cursorPref = store.get("c8-cursor");
-  optCursor.checked = cursorPref !== false;
-  const applyCursor = () => document.documentElement.classList.toggle("has-cursor", fine && optCursor.checked);
-  optCursor.addEventListener("change", () => { store.set("c8-cursor", optCursor.checked); applyCursor(); });
-  applyCursor();
+  document.documentElement.classList.toggle("has-cursor", fine);
   if (fine) {
     let mx = -100, my = -100, rx = -100, ry = -100, looping = false;
     // ring eases toward the pointer; the loop only runs while it's catching up
@@ -607,7 +592,10 @@
       const u = p.user || {};
       if (u.global_name || u.username) $("#dc-name").textContent = u.global_name || u.username;
       if (u.username) $("#dc-user").textContent = `@${u.username}`;
-      if (u.avatar) $("#dc-avatar").src = cdnImg(`avatars/${DISCORD_ID}`, u.avatar, 160);
+      // every Discord-avatar image (header, hero, footer, contact card) follows the live avatar
+      if (u.avatar) document.querySelectorAll(".js-dc-avatar").forEach((img) => {
+        img.src = cdnImg(`avatars/${DISCORD_ID}`, u.avatar, img.dataset.size || 160);
+      });
       const banner = $("#dc-banner");
       if (u.banner) banner.style.backgroundImage = `url('${cdnImg(`banners/${DISCORD_ID}`, u.banner, 600)}')`;
       else if (u.banner_color) banner.style.backgroundColor = u.banner_color;
