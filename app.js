@@ -502,10 +502,11 @@
     try {
       const { data } = await getBatched(API.games, ids);
       let total = 0;
-      data.forEach((g) => { const c = cards.get(g.id); if (c) updateCard(c, g); total += g.playing || 0; });
+      data.forEach((g) => { const c = cards.get(g.id); if (c) { c.game = g; updateCard(c, g); } total += g.playing || 0; });
       sub.textContent = `${data.length} game${data.length === 1 ? "" : "s"} · ${full.format(total)} playing now`;
       setCCU(total); setVisits();
       sortByVisits(); // visits keep climbing, so keep the order right
+      updateGroups();
     } catch {
       sub.textContent = "Couldn't reach Roblox, retrying shortly…";
     }
@@ -547,7 +548,7 @@
       el.className = "game-card";
       el.innerHTML = cardHTML(cfg, game, iconBy.get(uid), thumbBy.get(uid));
       grid.appendChild(el);
-      const entry = { el, values: {}, roles: rolesOf(cfg) };
+      const entry = { el, values: {}, roles: rolesOf(cfg), cfg, game, icon: iconBy.get(uid) };
       cards.set(uid, entry);
       updateCard(entry, game);
       total += game.playing || 0;
@@ -555,6 +556,7 @@
     sub.textContent = `${cards.size} game${cards.size === 1 ? "" : "s"} · ${full.format(total)} playing now`;
     setCCU(total); setVisits();
     sortByVisits(); updateFilterCounts(); applyFilter();
+    initGroups();
     setInterval(refreshStats, refreshMs);
   }
 
@@ -593,6 +595,107 @@
     filterBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.role === roleFilter)));
     applyFilter();
   }));
+
+  /* ============================================================
+   * Groups: the Roblox groups that own the games above, built
+   * from the same game data. Each group's role tags come from
+   * the roles you gave its games in games.js.
+   * ============================================================ */
+  const groupGrid = $("#group-grid");
+  const groupsSub = $("#groups-sub");
+  const groups = new Map(); // groupId -> { id, name, entries, el }
+  const ROLE_LABEL = { "environment art": "Environment art", "qa": "QA", "pm & moderation": "PM & Moderation", "private": "Private" };
+
+  // Member counts only come one group per request (and that endpoint rate-limits
+  // quickly), so fetch them one at a time and remember them for a day.
+  async function loadMemberCounts(ids) {
+    const cache = store.get("c8-group-members") || {};
+    const fresh = (c) => c && Date.now() - c.t < 864e5;
+    ids.forEach((id) => { if (fresh(cache[id])) setMembers(id, cache[id].n); });
+    for (const id of ids.filter((id) => !fresh(cache[id]))) {
+      try {
+        const g = await getJSONRetry(`https://groups.roproxy.com/v1/groups/${id}`, 2);
+        cache[id] = { n: g.memberCount, t: Date.now() };
+        store.set("c8-group-members", cache);
+        setMembers(id, g.memberCount);
+      } catch { /* leave the line without a member count */ }
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+  function setMembers(id, n) {
+    const g = groups.get(id);
+    if (g?.el && n != null) g.el.querySelector('[data-k="members"]').textContent = `${compact.format(n)} members · `;
+  }
+
+  function groupHTML(g, icon) {
+    const counts = {};
+    g.entries.forEach((e) => e.roles.forEach((r) => { counts[r] = (counts[r] || 0) + 1; }));
+    const tags = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      .map(([r, n]) => roleTag(ROLE_LABEL[r] || r).replace("</span>", `<span class="role-n">${n}</span></span>`)).join("");
+    const top = [...g.entries].sort((a, b) => (b.values.visits || 0) - (a.values.visits || 0));
+    const shown = top.slice(0, 6);
+    return `
+      <div class="group-top">
+        ${icon ? `<img class="group-icon" src="${esc(icon)}" alt="" loading="lazy" />` : `<div class="group-icon"></div>`}
+        <div class="group-id">
+          <div class="group-name"><span>${esc(g.name)}</span>${g.verified ? ICON.verified : ""}</div>
+          <div class="group-meta"><span data-k="members"></span>${g.entries.length} game${g.entries.length === 1 ? "" : "s"}</div>
+        </div>
+        <span class="group-open" aria-hidden="true">${ICON.open}</span>
+      </div>
+      <div class="group-roles">${tags}</div>
+      <div class="stats">
+        <div class="stat live"><div class="stat-label"><span class="mini-dot"></span>Playing</div><div class="stat-value" data-k="playing">0</div></div>
+        <div class="stat"><div class="stat-label">Visits</div><div class="stat-value" data-k="visits">0</div></div>
+        <div class="stat"><div class="stat-label">Favorites</div><div class="stat-value" data-k="favorites">0</div></div>
+      </div>
+      <div class="group-games">
+        ${shown.map((e) => `<img src="${esc((e.icon || "").replace("/150/150/", "/50/50/"))}" alt="" title="${esc(e.cfg.name || e.game.name)}" loading="lazy" />`).join("")}
+        ${top.length > shown.length ? `<span class="group-more">+${top.length - shown.length}</span>` : ""}
+      </div>`;
+  }
+
+  function updateGroups() {
+    groups.forEach((g) => {
+      if (!g.el) return;
+      const sum = (k) => g.entries.reduce((s, e) => s + (e.values[k] || 0), 0);
+      g.el.querySelector('[data-k="playing"]').textContent = full.format(sum("playing"));
+      g.el.querySelector('[data-k="visits"]').textContent = compact.format(sum("visits"));
+      g.el.querySelector('[data-k="favorites"]').textContent = compact.format(sum("favorites"));
+    });
+  }
+
+  async function initGroups() {
+    cards.forEach((e) => {
+      const c = e.game?.creator;
+      if (!c || c.type !== "Group") return;
+      if (!groups.has(c.id)) groups.set(c.id, { id: c.id, name: c.name, verified: c.hasVerifiedBadge, entries: [] });
+      groups.get(c.id).entries.push(e);
+    });
+    if (!groups.size) { $("#groups").hidden = true; return; }
+    const ids = [...groups.keys()];
+    const icons = await getBatched((p) => `https://thumbnails.roproxy.com/v1/groups/icons?groupIds=${p.join(",")}&size=150x150&format=Webp&isCircular=false`, ids)
+      .catch(() => ({ data: [] }));
+    const iconBy = new Map(icons.data.map((i) => [i.targetId, i.imageUrl]));
+
+    // biggest groups (by visits of the games you worked on) first
+    const visits = (g) => g.entries.reduce((s, e) => s + (e.values.visits || 0), 0);
+    const list = [...groups.values()].sort((a, b) => visits(b) - visits(a));
+    groupGrid.innerHTML = "";
+    list.forEach((g) => {
+      const el = document.createElement("a");
+      el.className = "group-card";
+      el.href = `https://www.roblox.com/communities/${g.id}`;
+      el.target = "_blank"; el.rel = "noreferrer";
+      el.setAttribute("aria-label", `${g.name} on Roblox`);
+      el.innerHTML = groupHTML(g, iconBy.get(g.id));
+      groupGrid.appendChild(el);
+      g.el = el;
+    });
+    groupsSub.textContent = `${list.length} group${list.length === 1 ? "" : "s"} behind the games above`;
+    updateGroups();
+    loadMemberCounts(ids);
+  }
 
   grid.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-copy]");
